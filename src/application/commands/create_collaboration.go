@@ -15,7 +15,12 @@ type CreateCollaboration struct {
 	IssuerId string
 }
 
-type CreateCollaborationHandler interfaces.CommandHandler[CreateCollaboration, string]
+type CreateCollaborationResult struct {
+	Id    string
+	Token string
+}
+
+type CreateCollaborationHandler interfaces.CommandHandler[CreateCollaboration, *CreateCollaborationResult]
 
 type createCollaborationHandler struct {
 	schemaRepository        schema.SchemaRepository
@@ -32,30 +37,33 @@ func NewCreateCollaborationHandler(
 	}
 }
 
-func (handler createCollaborationHandler) Handle(ctx context.Context, command CreateCollaboration) (string, error) {
+func (handler createCollaborationHandler) Handle(ctx context.Context, command CreateCollaboration) (*CreateCollaborationResult, error) {
 	schema, err := handler.schemaRepository.GetSchema(ctx, command.SchemaId)
 
 	if err != nil {
-		return "", errors.New("failed to get schema")
+		return nil, errors.New("failed to get schema")
 	}
 
 	if schema.OwnerId != command.IssuerId {
 		log.Println("The issuer is not owner of the schema!")
-		return "", errors.New("issuer not owner")
+		return nil, errors.New("issuer not owner")
 	}
 
 	_, err = handler.collaborationRepository.GetForSchema(ctx, command.SchemaId)
 
 	if err == nil {
-		return "", errors.New("a collaboration for the provided schema already exists")
+		return nil, errors.New("a collaboration for the provided schema already exists")
 	}
 
-	collaborationToken, err := handler.collaborationRepository.Create(ctx, command.SchemaId)
+	collaboration, err := handler.collaborationRepository.Create(ctx, command.SchemaId)
 
 	if err != nil {
 		log.Println("Could not create collaboration!")
-		return "", errors.New("could not create collaboration")
+		return nil, errors.New("could not create collaboration")
 	}
 
-	return collaborationToken, nil
+	return &CreateCollaborationResult{
+		Id:    collaboration.Id,
+		Token: collaboration.Token,
+	}, nil
 }

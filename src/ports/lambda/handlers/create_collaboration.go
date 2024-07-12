@@ -15,6 +15,7 @@ type CreateCollaborationBody struct {
 }
 
 type CreateCollaborationResponse struct {
+	Id                 string `json:"id"`
 	CollaborationToken string `json:"collaboration_token"`
 }
 
@@ -25,7 +26,7 @@ func CreateCollaborationHandler(ctx context.Context, event events.APIGatewayProx
 
 	app := service.NewApplication(ctx)
 
-	token, err := app.Commands.CreateCollaboration.Handle(ctx, commands.CreateCollaboration{
+	collaboration, err := app.Commands.CreateCollaboration.Handle(ctx, commands.CreateCollaboration{
 		SchemaId: body.SchemaId,
 		IssuerId: issuerId,
 	})
@@ -37,7 +38,8 @@ func CreateCollaborationHandler(ctx context.Context, event events.APIGatewayProx
 	}
 
 	responseBody, err := json.Marshal(CreateCollaborationResponse{
-		CollaborationToken: token,
+		Id:                 collaboration.Id,
+		CollaborationToken: collaboration.Token,
 	})
 
 	if err != nil {

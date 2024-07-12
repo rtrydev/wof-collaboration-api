@@ -123,18 +123,18 @@ func (repository CollaborationDynamoDbRepository) GetForSchema(ctx context.Conte
 	return &collaboration, err
 }
 
-func (repository CollaborationDynamoDbRepository) Create(ctx context.Context, schemaId string) (string, error) {
-	collaboration := CollaborationModel{
+func (repository CollaborationDynamoDbRepository) Create(ctx context.Context, schemaId string) (*collaboration.Collaboration, error) {
+	collaborationModel := CollaborationModel{
 		Id:       guid.NewString(),
 		SchemaId: schemaId,
 		Token:    guid.NewString(),
 	}
 
-	collaborationData, err := attributevalue.MarshalMap(collaboration)
+	collaborationData, err := attributevalue.MarshalMap(collaborationModel)
 
 	if err != nil {
 		log.Println("Could not create collaboration data!", err)
-		return "", errors.New("unparsable collaboration schema")
+		return nil, errors.New("unparsable collaboration schema")
 	}
 
 	_, err = repository.dynamoDbClient.PutItem(ctx, &dynamodb.PutItemInput{
@@ -144,8 +144,12 @@ func (repository CollaborationDynamoDbRepository) Create(ctx context.Context, sc
 
 	if err != nil {
 		log.Println("Could not put item in dynamodb!", err)
-		return "", errors.New("database put failed")
+		return nil, errors.New("database put failed")
 	}
 
-	return collaboration.Token, nil
+	return &collaboration.Collaboration{
+		Id:       collaborationModel.Id,
+		SchemaId: collaborationModel.SchemaId,
+		Token:    collaborationModel.Token,
+	}, nil
 }
