@@ -24,6 +24,8 @@ func main() {
 		lambda.Start(handlers.JoinCollaborationHandler)
 	case "getUserCollaborations":
 		lambda.Start(handlers.GetUserCollaborationsHandler)
+	case "getCollaborationForSchema":
+		lambda.Start(handlers.GetCollaborationForSchema)
 	default:
 		panic("unsupported handler")
 	}

@@ -44,7 +44,8 @@ func newApplication(
 			AddUserToCollaboration: commands.NewAddUserToCollaborationHandler(collaborationRepository, collaborationAffiliationRepository),
 		},
 		Queries: application.Queries{
-			GetUserCollaborations: queries.NewGetUserCollaborationsHandler(collaborationAffiliationRepository),
+			GetUserCollaborations:     queries.NewGetUserCollaborationsHandler(collaborationAffiliationRepository),
+			GetCollaborationForSchema: queries.NewGetCollaborationForSchemaHandler(collaborationRepository, schemaRepository),
 		},
 	}
 }

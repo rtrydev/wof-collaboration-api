@@ -16,5 +16,6 @@ type Commands struct {
 }
 
 type Queries struct {
-	GetUserCollaborations queries.GetUserCollaborationsHandler
+	GetUserCollaborations     queries.GetUserCollaborationsHandler
+	GetCollaborationForSchema queries.GetCollaborationForSchemaHandler
 }

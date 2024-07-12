@@ -73,6 +73,16 @@ functions:
           path: /
           method: get
           authorizer: wofAuthorizer
+  getCollaborationForSchema:
+    handler: src/ports/lambda/main.go
+    package:
+      include:
+        - 'src/**/*.go'
+    events:
+      - httpApi:
+          path: /{schema_id}
+          method: get
+          authorizer: wofAuthorizer
 
 custom:
   go:
