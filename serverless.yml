@@ -1,0 +1,84 @@
+service: wof-collaboration-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: provided.al2023
+  deploymentBucket:
+    name: rtrydev-serverless-deployments-${opt:region}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - 'dynamodb:GetItem'
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Query'
+            - 'dynamodb:UpdateItem'
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/wof-schemas
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/wof-schemas/*
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/wof-collaborations
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/wof-collaborations/*
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/wof-collaboration-affiliations
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/wof-collaboration-affiliations/*
+  httpApi:
+    cors:
+      allowedOrigins: '*'
+      allowedHeaders:
+        - Content-Type
+        - X-Amz-Date
+        - Authorization
+        - X-Api-Key
+        - X-Amz-Security-Token
+        - X-Amz-User-Agent
+    authorizers:
+      wofAuthorizer:
+        type: request
+        functionArn: 'arn:aws:lambda:${aws:region}:${aws:accountId}:function:wof-authorizer-dev-authorize'
+
+package:
+  individually: true
+  exclude:
+    - '**/*'
+
+functions:
+  createCollaboration:
+    handler: src/ports/lambda/main.go
+    package:
+      include:
+        - 'src/**/*.go'
+    events:
+      - httpApi:
+          path: /
+          method: post
+          authorizer: wofAuthorizer
+  joinCollaboration:
+    handler: src/ports/lambda/main.go
+    package:
+      include:
+        - 'src/**/*.go'
+    events:
+      - httpApi:
+          path: /{schema_id}/join/{token}
+          method: post
+          authorizer: wofAuthorizer
+  getUserCollaborations:
+    handler: src/ports/lambda/main.go
+    package:
+      include:
+        - 'src/**/*.go'
+    events:
+      - httpApi:
+          path: /
+          method: get
+          authorizer: wofAuthorizer
+
+custom:
+  go:
+    supportedRuntimes: ['provided.al2023']
+    buildProvidedRuntimeAsBootstrap: true
+
+plugins:
+  - serverless-deployment-bucket
+  - serverless-go-plugin
