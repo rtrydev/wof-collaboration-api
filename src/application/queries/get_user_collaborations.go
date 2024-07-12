@@ -35,7 +35,7 @@ func (handler getUserCollaborationsHandler) Handle(
 
 	if err != nil {
 		log.Println("Could not get affiliations for the user")
-		return nil, errors.New("could not get affiliations")
+		return []string{}, errors.New("could not get affiliations")
 	}
 
 	schemaIds := []string{}
